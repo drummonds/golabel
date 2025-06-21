@@ -9,7 +9,7 @@ import (
 	"time"
 	"unicode"
 
-	"drummonds/golabel/version"
+	"github.com/drummonds/golabel/version"
 
 	"github.com/mect/go-escpos"
 	"golang.org/x/text/width"
