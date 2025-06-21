@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -19,6 +20,11 @@ var p *escpos.Printer
 var tmpl *template.Template
 
 const maxLineLength = 27
+
+// Command line flags
+var (
+	port = flag.Int("port", 80, "Port to listen on")
+)
 
 // min function that was missing
 func min(a, b int) int {
@@ -350,6 +356,9 @@ func renderPage(w http.ResponseWriter, status string, success bool) {
 }
 
 func main() {
+	// Parse command line flags
+	flag.Parse()
+
 	var err error
 
 	// Initialize template once
@@ -365,14 +374,14 @@ func main() {
 		return
 	}
 
-	fmt.Printf("Starting GoLabel web server on http://localhost:8080\n")
+	fmt.Printf("Starting GoLabel web server on http://localhost:%d\n", *port)
 	fmt.Printf("Version: %s\n", version.GetVersionInfo())
 	fmt.Println("Printer initialized successfully")
 
 	http.HandleFunc("/", handlePrint)
 	http.HandleFunc("/print", handlePrint)
 
-	err = http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
 	if err != nil {
 		fmt.Println("Error starting server:", err)
 	}
