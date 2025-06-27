@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"flag"
 	"fmt"
 	"html/template"
@@ -15,6 +16,9 @@ import (
 	"github.com/mect/go-escpos"
 	"golang.org/x/text/width"
 )
+
+//go:embed templates
+var templateFS embed.FS
 
 var p *escpos.Printer
 var tmpl *template.Template
@@ -175,119 +179,6 @@ func label(message string, num int) error {
 	return nil
 }
 
-const htmlTemplate = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>GoLabel - TM-T20III Label Printer</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        input[type="text"], input[type="number"], textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-            font-family: inherit;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .status {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            text-align: center;
-            color: #666;
-            font-size: 12px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>GoLabel - TM-T20III Printer Control</h1>
-        <form method="POST" action="/print">
-            <div class="form-group">
-                <label for="message">Message to Print:</label>
-                <textarea id="message" name="message" placeholder="Enter your message here..." required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="barcode">Barcode Number:</label>
-                <input type="number" id="barcode" name="barcode" value="5" min="1" max="999999">
-            </div>
-            <button type="submit">Print Label</button>
-        </form>
-        {{if .Status}}
-        <div class="status {{if .Success}}success{{else}}error{{end}}">
-            {{.Status}}
-        </div>
-        {{end}}
-        <div class="footer">
-            <div>Version: {{.Version}}</div>
-            <div>Built: {{.BuildDate}}</div>
-        </div>
-    </div>
-</body>
-</html>
-`
-
 type PageData struct {
 	Status    string
 	Success   bool
@@ -348,8 +239,8 @@ func main() {
 
 	var err error
 
-	// Initialize template once
-	tmpl, err = template.New("printer").Parse(htmlTemplate)
+	// Initialize template from embedded filesystem
+	tmpl, err = template.ParseFS(templateFS, "templates/printer.html")
 	if err != nil {
 		fmt.Println("Error parsing template:", err)
 		return
