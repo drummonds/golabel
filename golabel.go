@@ -26,14 +26,6 @@ var (
 	port = flag.Int("port", 80, "Port to listen on")
 )
 
-// min function that was missing
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 // max function for smart wrapping
 func max(a, b int) int {
 	if a > b {
@@ -60,15 +52,41 @@ func wrapTextUnicode(text string, maxWidth int) []string {
 
 		// If adding this character would exceed the line width
 		if currentWidth+charWidth > maxWidth && currentWidth > 0 {
-			// Start a new line
-			lines = append(lines, strings.TrimSpace(currentLine.String()))
-			currentLine.Reset()
-			currentWidth = 0
-		}
+			// Check if there's a space in the last 10 runes of the current line
+			lineStr := currentLine.String()
+			lastSpaceIndex := -1
 
-		// Add the character to the current line
-		currentLine.WriteRune(r)
-		currentWidth += charWidth
+			// Look for the last space in the last 10 runes
+			start := max(0, len(lineStr)-10)
+			for j := len(lineStr) - 1; j >= start; j-- {
+				if lineStr[j] == ' ' {
+					lastSpaceIndex = j
+					break
+				}
+			}
+
+			// If we found a space, wrap there
+			if lastSpaceIndex > 0 {
+				// Split at the space
+				beforeSpace := lineStr[:lastSpaceIndex]
+				afterSpace := lineStr[lastSpaceIndex+1:] + string(r)
+
+				lines = append(lines, strings.TrimSpace(beforeSpace))
+				currentLine.Reset()
+				currentLine.WriteString(afterSpace)
+				currentWidth = runeWidth(r) // Reset width for the new line
+			} else {
+				// No space found, wrap at current position and add hyphen
+				lines = append(lines, strings.TrimSpace(currentLine.String())+"-")
+				currentLine.Reset()
+				currentLine.WriteRune(r)
+				currentWidth = charWidth
+			}
+		} else {
+			// Add the character to the current line
+			currentLine.WriteRune(r)
+			currentWidth += charWidth
+		}
 	}
 
 	// Add the last line if it has content
@@ -98,37 +116,6 @@ func runeWidth(r rune) int {
 	default:
 		return 1 // Regular characters
 	}
-}
-
-// wrapText is a more efficient text wrapping function
-func wrapText(text string, width int) []string {
-	if width <= 0 {
-		return []string{text}
-	}
-
-	var lines []string
-	words := strings.Fields(text)
-
-	if len(words) == 0 {
-		return []string{""}
-	}
-
-	currentLine := words[0]
-
-	for _, word := range words[1:] {
-		if len(currentLine)+1+len(word) <= width {
-			currentLine += " " + word
-		} else {
-			lines = append(lines, currentLine)
-			currentLine = word
-		}
-	}
-
-	if currentLine != "" {
-		lines = append(lines, currentLine)
-	}
-
-	return lines
 }
 
 // printMessageLines prints a message line by line, wrapping at maxLineLength characters
