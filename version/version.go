@@ -7,7 +7,7 @@ import (
 
 // Version information
 var (
-	Version   = "0.2.0"
+	Version   = "0.1.0"
 	BuildDate = time.Now().Format("2006-01-02 15:04:05")
 	GitCommit = "golabel"
 )

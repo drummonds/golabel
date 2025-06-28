@@ -38,10 +38,10 @@ func max(a, b int) int {
 	return b
 }
 
-// wrapTextUnicode is a Unicode-aware text wrapping function
-func wrapTextUnicode(text string, maxWidth int) []string {
+// wrapSingleLine wraps a single line of text to fit within maxWidth
+func wrapSingleLine(line string, maxWidth int) []string {
 	if maxWidth <= 0 {
-		return []string{text}
+		return []string{line}
 	}
 
 	var lines []string
@@ -49,7 +49,7 @@ func wrapTextUnicode(text string, maxWidth int) []string {
 	currentWidth := 0
 
 	// Normalize the text to handle full-width characters
-	normalized := width.Narrow.String(text)
+	normalized := width.Narrow.String(line)
 
 	for _, r := range normalized {
 		charWidth := runeWidth(r)
@@ -104,6 +104,39 @@ func wrapTextUnicode(text string, maxWidth int) []string {
 	}
 
 	return lines
+}
+
+// wrapTextUnicode is a Unicode-aware text wrapping function
+// maxWidth is the maximum width of the line in normal characters on
+// an 80mm printer.  This should in time be transformed into a function
+// in the driver that
+func wrapTextUnicode(text string, maxWidth int) []string {
+	if maxWidth <= 0 { // no wrapping
+		return []string{text}
+	}
+
+	var allLines []string
+
+	// Split the text by newlines and process each line separately
+	lines := strings.Split(text, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			allLines = append(allLines, "") // Preserve empty lines
+			continue
+		}
+
+		// Wrap this single line
+		wrappedLines := wrapSingleLine(line, maxWidth)
+		allLines = append(allLines, wrappedLines...)
+	}
+
+	// Handle empty input
+	if len(allLines) == 0 {
+		return []string{""}
+	}
+
+	return allLines
 }
 
 // runeWidth returns the display width of a rune
