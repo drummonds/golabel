@@ -39,31 +39,33 @@ func max(a, b int) int {
 }
 
 // wrapSingleLine wraps a single line of text to fit within maxWidth
-func wrapSingleLine(line string, maxWidth int) []string {
-	if maxWidth <= 0 {
+// maxWidth is the maximum width of the line in normal characters on
+// an 80mm printer.  This should in time be transformed into a function
+// in the driver that calculates it exactly
+func wrapSingleLine(line string, maxPrintedWidth int) []string {
+	if maxPrintedWidth <= 0 {
 		return []string{line}
 	}
 
+	// Convert to runes and normalize for full-width characters
+	runes := []rune(line)
+
 	var lines []string
-	var currentLine strings.Builder
+	var currentLine []rune
 	currentWidth := 0
 
-	// Normalize the text to handle full-width characters
-	normalized := width.Narrow.String(line)
-
-	for _, r := range normalized {
+	for _, r := range runes {
 		charWidth := runeWidth(r)
 
 		// If adding this character would exceed the line width
-		if currentWidth+charWidth > maxWidth && currentWidth > 0 {
+		if currentWidth+charWidth > maxPrintedWidth && currentWidth > 0 {
 			// Check if there's a space in the last 10 runes of the current line
-			lineStr := currentLine.String()
 			lastSpaceIndex := -1
 
 			// Look for the last space in the last 10 runes
-			start := max(0, len(lineStr)-10)
-			for j := len(lineStr) - 1; j >= start; j-- {
-				if lineStr[j] == ' ' {
+			start := max(0, len(currentLine)-10)
+			for j := len(currentLine) - 1; j >= start; j-- {
+				if unicode.IsSpace(currentLine[j]) {
 					lastSpaceIndex = j
 					break
 				}
@@ -72,30 +74,28 @@ func wrapSingleLine(line string, maxWidth int) []string {
 			// If we found a space, wrap there
 			if lastSpaceIndex > 0 {
 				// Split at the space
-				beforeSpace := lineStr[:lastSpaceIndex]
-				afterSpace := lineStr[lastSpaceIndex+1:] + string(r)
+				beforeSpace := currentLine[:lastSpaceIndex]
+				afterSpace := append(currentLine[lastSpaceIndex+1:], r)
 
-				lines = append(lines, strings.TrimSpace(beforeSpace))
-				currentLine.Reset()
-				currentLine.WriteString(afterSpace)
+				lines = append(lines, strings.TrimSpace(string(beforeSpace)))
+				currentLine = afterSpace
 				currentWidth = runeWidth(r) // Reset width for the new line
 			} else {
 				// No space found, wrap at current position and add hyphen
-				lines = append(lines, strings.TrimSpace(currentLine.String())+"-")
-				currentLine.Reset()
-				currentLine.WriteRune(r)
+				lines = append(lines, strings.TrimSpace(string(currentLine))+"-")
+				currentLine = []rune{r}
 				currentWidth = charWidth
 			}
 		} else {
 			// Add the character to the current line
-			currentLine.WriteRune(r)
+			currentLine = append(currentLine, r)
 			currentWidth += charWidth
 		}
 	}
 
 	// Add the last line if it has content
-	if currentLine.Len() > 0 {
-		lines = append(lines, strings.TrimSpace(currentLine.String()))
+	if len(currentLine) > 0 {
+		lines = append(lines, strings.TrimSpace(string(currentLine)))
 	}
 
 	// Handle empty input
