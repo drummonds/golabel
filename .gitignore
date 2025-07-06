@@ -1,0 +1,5 @@
+# go debug files
+__debug
+
+#VS code
+.vscode

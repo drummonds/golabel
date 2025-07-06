@@ -37,6 +37,21 @@ func max(a, b int) int {
 	}
 	return b
 }
+func spaceNearEnd(line []rune) (bool, int) {
+	// Check if there's a space in the last 10 runes of the current line
+	lastSpaceIndex := -1
+	start := max(0, len(line)-10)
+
+	// Look for the last space in the last 10 runes
+	for j := len(line) - 1; j >= start; j-- {
+		if unicode.IsSpace(line[j]) {
+			lastSpaceIndex = j
+			break
+		}
+	}
+	result := lastSpaceIndex >= 0
+	return result, lastSpaceIndex
+}
 
 // wrapSingleLine wraps a single line of text to fit within maxWidth
 // maxWidth is the maximum width of the line in normal characters on
@@ -54,42 +69,84 @@ func wrapSingleLine(line string, maxPrintedWidth int) []string {
 	var currentLine []rune
 	currentWidth := 0
 
-	for _, r := range runes {
-		charWidth := runeWidth(r)
+	// State machine for text wrapping
+	type State int
+	const (
+		StateNormal State = iota
+		StateSpaceSearch
+		StateSkipSpace
+	)
 
-		// If adding this character would exceed the line width
-		if currentWidth+charWidth > maxPrintedWidth && currentWidth > 0 {
-			// Check if there's a space in the last 10 runes of the current line
-			lastSpaceIndex := -1
+	currentState := StateSkipSpace // Start with skip space state
+	var (
+		currentRune    rune
+		charWidth      int
+		lastSpaceIndex int
+		hasSpace       bool
+	)
 
-			// Look for the last space in the last 10 runes
-			start := max(0, len(currentLine)-10)
-			for j := len(currentLine) - 1; j >= start; j-- {
-				if unicode.IsSpace(currentLine[j]) {
-					lastSpaceIndex = j
-					break
-				}
-			}
+	StateWrapAtSpace := func(lastSpaceIndex int) {
+		currentLine = append(currentLine, currentRune)
+		// Split at the space and consume it
+		beforeSpace := currentLine[:lastSpaceIndex]
+		afterSpace := currentLine[lastSpaceIndex+1:]
 
-			// If we found a space, wrap there
-			if lastSpaceIndex > 0 {
-				// Split at the space
-				beforeSpace := currentLine[:lastSpaceIndex]
-				afterSpace := append(currentLine[lastSpaceIndex+1:], r)
+		lines = append(lines, strings.TrimSpace(string(beforeSpace)))
+		currentLine = afterSpace
+		currentWidth = runesWidth(currentLine)
+		if currentWidth == 0 {
+			currentState = StateSkipSpace // Start new line with skip space state
+			return
+		}
+		currentState = StateNormal
+		return // Start new line with skip space state
+	}
+	StateWrapAtCharacter := func() {
+		// No space found, wrap at current position and add hyphen
+		lines = append(lines, strings.TrimSpace(string(currentLine[:len(currentLine)-1]))+"-")
+		currentLine = []rune{currentLine[len(currentLine)-1], currentRune}
+		currentWidth = runesWidth(currentLine)
+		currentState = StateNormal
+	}
 
-				lines = append(lines, strings.TrimSpace(string(beforeSpace)))
-				currentLine = afterSpace
-				currentWidth = runeWidth(r) // Reset width for the new line
+	for i := 0; i < len(runes); i++ {
+		currentRune = runes[i]
+		charWidth = runeWidth(currentRune)
+
+		switch currentState {
+		case StateSkipSpace:
+			// Skip leading spaces at the beginning of a line
+			if unicode.IsSpace(currentRune) {
+				// Continue skipping spaces
+				continue
 			} else {
-				// No space found, wrap at current position and add hyphen
-				lines = append(lines, strings.TrimSpace(string(currentLine))+"-")
-				currentLine = []rune{r}
-				currentWidth = charWidth
+				// Found non-space character, transition to normal state
+				currentState = StateNormal
+				// Don't consume the rune yet, re-process it in normal state
+				i-- // Rewind to reprocess this rune
 			}
-		} else {
-			// Add the character to the current line
-			currentLine = append(currentLine, r)
-			currentWidth += charWidth
+
+		case StateNormal:
+			// Check if adding this character would exceed the line width
+			if currentWidth+charWidth > maxPrintedWidth && currentWidth > 0 {
+				switch {
+				// case i == len(runes)-1: // end of line
+				// 	StateWrapAtCharacter()
+				case unicode.IsSpace(currentRune): // next char is a space
+					StateWrapAtSpace(len(currentLine))
+				default:
+					hasSpace, lastSpaceIndex = spaceNearEnd(currentLine)
+					if hasSpace {
+						StateWrapAtSpace(lastSpaceIndex)
+					} else {
+						StateWrapAtCharacter()
+					}
+				}
+			} else {
+				// Add the character to the current line
+				currentLine = append(currentLine, currentRune)
+				currentWidth += charWidth
+			}
 		}
 	}
 
@@ -153,6 +210,14 @@ func runeWidth(r rune) int {
 	default:
 		return 1 // Regular characters
 	}
+}
+
+// runeWidth returns the display width of a rune
+func runesWidth(runes []rune) (result int) {
+	for _, thisRune := range runes {
+		result += runeWidth(thisRune)
+	}
+	return result
 }
 
 // printMessageLines prints a message line by line, wrapping at maxLineLength characters
