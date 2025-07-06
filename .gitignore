@@ -1,5 +1,5 @@
 # go debug files
-__debug
+__debug*
 
 #VS code
 .vscode
