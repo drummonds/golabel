@@ -23,7 +23,7 @@ var templateFS embed.FS
 var p *escpos.Printer
 var tmpl *template.Template
 
-const maxLineLength = 27
+const maxLineLength = 32
 
 // Command line flags
 var (
