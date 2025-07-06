@@ -251,9 +251,11 @@ func label(message string, num int) error {
 
 	p.Init()       // start
 	p.Smooth(true) // use smooth printing
-	p.Size(1, 1)   // set font size
+	p.Size(3, 3)   // set font size
+	p.Underline(true)
 	p.Align(escpos.AlignCenter)
-	p.PrintLn("Hello Humphrey")
+	p.PrintLn("GoLabel Task Printer")
+	p.Underline(false)
 
 	p.Size(2, 2)
 	p.Font(escpos.FontB) // change font
@@ -267,9 +269,13 @@ func label(message string, num int) error {
 
 	printMessageLines(message)
 
+	p.Feed(2)
+
 	p.Align(escpos.AlignCenter)
 	p.Barcode(fmt.Sprintf("%d", num), escpos.BarcodeTypeCODE39) // print barcode
 	p.Align(escpos.AlignLeft)
+	p.Size(1, 1) // set font size
+	p.PrintLn("Printed at: " + time.Now().Format("2006-01-02T15:04:05Z"))
 
 	p.Cut() // cut
 	p.End() // stop
