@@ -182,7 +182,7 @@
                 <input type="number" id="barcode" name="barcode" value="5" min="1" max="999999">
             </div>
             <button type="submit" accesskey="Enter">Print Label</button>
-            <div class="keyboard-hint">Press Ctrl+Enter to submit the form</div>
+            <div class="keyboard-hint">Press Alt+Enter to submit the form</div>
         </form>
         {{if .Status}}
         <div class="status {{if .Success}}success{{else}}error{{end}}">
@@ -194,5 +194,7 @@
             <div>Built: {{.BuildDate}}</div>
         </div>
     </div>
+
+
 </body>
 </html> 

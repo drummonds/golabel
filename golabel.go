@@ -254,7 +254,7 @@ func label(message string, num int) error {
 	p.Size(3, 3)   // set font size
 	p.Underline(true)
 	p.Align(escpos.AlignCenter)
-	p.PrintLn("GoLabel Task Printer")
+	p.PrintLn("Task")
 	p.Underline(false)
 
 	p.Size(2, 2)
