@@ -181,8 +181,8 @@
                 <label for="barcode">Barcode Number:</label>
                 <input type="number" id="barcode" name="barcode" value="5" min="1" max="999999">
             </div>
-            <button type="submit" accesskey="Enter">Print Label</button>
-            <div class="keyboard-hint">Press Alt+Enter to submit the form</div>
+            <button type="submit" accesskey="s">Print Label</button>
+            <div class="keyboard-hint">Press Alt+S to submit the form</div>
         </form>
         {{if .Status}}
         <div class="status {{if .Success}}success{{else}}error{{end}}">
