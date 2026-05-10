@@ -1,0 +1,37 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  fmt:
+    desc: Format Go source code
+    cmds:
+      - go fmt ./...
+
+  vet:
+    desc: Run Go vet
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test ./...
+
+  check:
+    desc: Run fmt, vet, and test
+    cmds:
+      - task: fmt
+      - task: vet
+      - task: test
+
+  vuln:
+    desc: Check for vulnerabilities
+    cmds:
+      - go install golang.org/x/vuln/cmd/govulncheck@latest
+      - govulncheck ./...
+
+  clean:
+    desc: Remove generated artefacts
+    cmds:
+      - rm -f docs/*.html
