@@ -10,9 +10,8 @@ Working and in production on a gokrazy host (`hello`).
 
 ## Links
 
-- **Source**: https://codeberg.org/hum3/golabel (primary)
-- **Mirror**: https://github.com/drummonds/golabel
-- **Issues**: https://codeberg.org/hum3/golabel/issues
+- **Source**: https://git.bytestone.uk/hum3/golabel
+- **Issues**: https://git.bytestone.uk/hum3/golabel/issues
 
 ## Usage
 

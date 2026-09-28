@@ -11,7 +11,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/drummonds/golabel/version"
+	"git.bytestone.uk/hum3/golabel/version"
 
 	"github.com/mect/go-escpos"
 	"golang.org/x/text/width"

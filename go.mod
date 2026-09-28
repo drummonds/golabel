@@ -1,4 +1,4 @@
-module github.com/drummonds/golabel
+module git.bytestone.uk/hum3/golabel
 
 go 1.24.4
 
