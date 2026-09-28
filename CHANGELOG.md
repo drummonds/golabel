@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-28
+
+ - Post-it note favicon
+
 ### Added
 - Post-it note favicon, served at `/favicon.svg` from the embedded templates.
 
