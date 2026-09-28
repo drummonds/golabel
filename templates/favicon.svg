@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Post-it note: yellow square with a curled bottom-right corner -->
+  <path d="M6 6h52v38L44 58H6z" fill="#ffd93b" stroke="#c9a400" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M58 44H44v14z" fill="#e6b800" stroke="#c9a400" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M6 6h52v8H6z" fill="#f5c800"/>
+  <path d="M14 26h34M14 34h34M14 42h22" stroke="#8a7300" stroke-width="3" stroke-linecap="round"/>
+</svg>

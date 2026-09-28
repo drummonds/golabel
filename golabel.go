@@ -337,6 +337,19 @@ func renderPage(w http.ResponseWriter, status string, success bool) {
 	}
 }
 
+func handleFavicon(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "image/svg+xml")
+	http.ServeFileFS(w, r, templateFS, "templates/favicon.svg")
+}
+
+func newMux() *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", handlePrint)
+	mux.HandleFunc("/print", handlePrint)
+	mux.HandleFunc("/favicon.svg", handleFavicon)
+	return mux
+}
+
 func main() {
 	// Parse command line flags
 	flag.Parse()
@@ -360,10 +373,7 @@ func main() {
 	fmt.Printf("Version: %s\n", version.GetVersionInfo())
 	fmt.Println("Printer initialized successfully")
 
-	http.HandleFunc("/", handlePrint)
-	http.HandleFunc("/print", handlePrint)
-
-	err = http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%d", *port), newMux())
 	if err != nil {
 		fmt.Println("Error starting server:", err)
 	}
